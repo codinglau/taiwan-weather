@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" grid-container="IE=edge">
+    <meta name="viewport" grid-container="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/weather.css">
+    <title>台灣未來8小時天氣預報</title>
+</head>
+<body>
+    <div class="grid-container">
+        <div class="wraper">
+            <div class="header-title">
+                <a href="#">台灣天氣預報</a>
+                <span class="today"></span>
+            </div>
+            <!-- <nav></nav> -->
+        </div>
+    </div>
+
+    <script src="./js/fetchWeatherData.js"></script>
+    <script>
+        var gridContainer = document.querySelector(".grid-container");
+        var curDate = document.querySelector(".today");
+        var getDate = new Date(); 
+        // print today's date on the header bar
+        curDate.innerHTML += `${getDate.getFullYear()} 年 ${getDate.getMonth() + 1} 月 ${getDate.getDate()} 日`
+
+        var targetUrl = "https://opendata.cwb.gov.tw/fileapi/v1/opendataapi/F-C0032-001?Authorization=CWB-2D2AB59E-63B3-4AD3-8E08-7F88E34A4B51&downloadType=WEB&format=JSON";
+        fetch(targetUrl)
+                .then(status)
+                .then(json)
+                .then(function(data) {
+                    // console.log('Request succeeded with JSON response', data);
+                    // console.log(data);
+                    data = data["cwbopendata"]["dataset"]["location"];
+                    // console.log(data);
+                    const locations = getAllLocations(data);
+                    locations.forEach(element => {
+                        // create weather card
+                        var newDiv = document.createElement("div");
+                        newDiv.setAttribute("class", "weather-card");
+                        
+                        // set heading for weather card
+                        var newHeading = document.createElement("h2");
+                        newHeading.innerHTML = element;     // set city name to be the heading of each weather card
+                        newDiv.appendChild(newHeading);
+                        gridContainer.appendChild(newDiv);
+
+                        // print weather data onto weather card
+                        newDiv.innerHTML += `<div class="weather-img"> ${getWeatherSVG(getLocationWeather(data, element, "Wx", 0)["parameterValue"])} </div>
+                        <table class="weather-status">
+                            <tr><td>天氣現象</td><td>${getLocationWeather(data, element, "Wx", 0)["parameterName"]}</td></tr>
+                            <tr><td>最高溫度</td><td>${getLocationWeather(data, element, "MaxT", 0)["parameterName"]}  &#8451</td></tr>
+                            <tr><td>最低溫度</td><td>${getLocationWeather(data, element, "MinT", 0)["parameterName"]} &#8451</td></tr>
+                            <tr><td>舒適度</td><td>${getLocationWeather(data, element, "CI", 0)["parameterName"]}</td></tr>
+                            <tr><td>降雨機率</td><td>${getLocationWeather(data, element, "PoP", 0)["parameterName"]}%</td></tr>
+                        </table>`
+
+                        // console.log(getLocationWeather(data, element, "Wx", 0));
+                    });
+                    
+                }).catch(function(error) {
+                    console.log('Request failed', error);
+        });
+
+    </script>
+</body>
+</html>
